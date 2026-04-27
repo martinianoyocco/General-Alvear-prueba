@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa de Políticas Públicas · General Alvear</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --accent: #4fc3f7;
+    --accent2: #81c784;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --danger: #f85149;
+    --warn: #f0a500;
+
+```
+--edu-urbana: #4fc3f7;
+--edu-rural: #29b6f6;
+--edu-tecnica: #0288d1;
+--edu-agraria: #26c6da;
+--salud-hosp: #ef5350;
+--salud-caps: #ff8a65;
+--municipal: #ab47bc;
+--seguridad: #42a5f5;
+--bomberos: #ff7043;
+--deporte: #66bb6a;
+--transporte: #ffca28;
+--infraestructura: #8d6e63;
+--espacio-verde: #a5d6a7;
+--barrio-vuln: #ff8f00;
+--obra: #ec407a;
+--otro: #9e9e9e;
+```
+
+}
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+font-family: ‘Sora’, sans-serif;
+background: var(–bg);
+color: var(–text);
+display: flex;
+flex-direction: column;
+height: 100vh;
+overflow: hidden;
+}
+
+/* ── HEADER ── */
+header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 10px 18px;
+background: var(–panel);
+border-bottom: 1px solid var(–border);
+z-index: 1000;
+flex-shrink: 0;
+}
+
+.logo {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.logo-icon {
+width: 34px; height: 34px;
+background: linear-gradient(135deg, var(–accent), var(–accent2));
+border-radius: 8px;
+display: flex; align-items: center; justify-content: center;
+font-size: 18px;
+}
+.logo-text {
+line-height: 1.2;
+}
+.logo-text h1 {
+font-size: 14px; font-weight: 700; color: var(–text);
+letter-spacing: 0.02em;
+}
+.logo-text span {
+font-size: 11px; color: var(–muted); font-weight: 300;
+font-family: ‘JetBrains Mono’, monospace;
+}
+
+.header-actions {
+display: flex; gap: 8px; align-items: center;
+}
+
+.btn {
+padding: 6px 14px; border-radius: 6px; border: 1px solid var(–border);
+background: transparent; color: var(–text); cursor: pointer;
+font-family: ‘Sora’, sans-serif; font-size: 12px; font-weight: 600;
+transition: all 0.15s;
+display: flex; align-items: center; gap: 5px;
+}
+.btn:hover { background: var(–border); }
+.btn.primary {
+background: var(–accent); color: #000; border-color: var(–accent);
+}
+.btn.primary:hover { opacity: 0.85; }
+.btn.danger { border-color: var(–danger); color: var(–danger); }
+.btn.danger:hover { background: var(–danger); color: #fff; }
+
+/* ── MODE BADGE ── */
+.mode-badge {
+padding: 5px 12px; border-radius: 20px;
+font-size: 11px; font-weight: 600; font-family: ‘JetBrains Mono’, monospace;
+transition: all 0.2s;
+}
+.mode-badge.normal { background: #21262d; border: 1px solid var(–border); color: var(–muted); }
+.mode-badge.adding { background: #0d3a2e; border: 1px solid var(–accent2); color: var(–accent2); animation: pulse 1.5s infinite; }
+.mode-badge.coverage { background: #1a1f3a; border: 1px solid var(–accent); color: var(–accent); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+/* ── LAYOUT ── */
+.main {
+display: flex;
+flex: 1;
+overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+width: 280px;
+background: var(–panel);
+border-right: 1px solid var(–border);
+display: flex;
+flex-direction: column;
+overflow: hidden;
+flex-shrink: 0;
+transition: width 0.3s;
+}
+.sidebar.collapsed { width: 0; }
+
+.sidebar-tabs {
+display: flex;
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+}
+.tab-btn {
+flex: 1; padding: 10px 4px; background: none; border: none;
+color: var(–muted); cursor: pointer; font-family: ‘Sora’, sans-serif;
+font-size: 11px; font-weight: 600; transition: all 0.15s;
+border-bottom: 2px solid transparent;
+}
+.tab-btn.active { color: var(–accent); border-bottom-color: var(–accent); }
+
+.tab-content { display: none; flex: 1; overflow-y: auto; padding: 12px; }
+.tab-content.active { display: block; }
+
+/* scrollbar */
+.tab-content::-webkit-scrollbar { width: 4px; }
+.tab-content::-webkit-scrollbar-track { background: transparent; }
+.tab-content::-webkit-scrollbar-thumb { background: var(–border); border-radius: 2px; }
+
+/* ── CATEGORY GROUPS ── */
+.cat-group { margin-bottom: 14px; }
+.cat-group-header {
+font-size: 10px; font-weight: 700; color: var(–muted);
+text-transform: uppercase; letter-spacing: 0.08em;
+margin-bottom: 6px; padding: 0 2px;
+}
+
+.cat-item {
+display: flex; align-items: center; gap: 8px;
+padding: 6px 8px; border-radius: 6px; cursor: pointer;
+transition: background 0.12s; margin-bottom: 2px;
+border: 1px solid transparent;
+}
+.cat-item:hover { background: #1c2128; }
+.cat-item.active-add { border-color: var(–accent2); background: #0d1f18; }
+
+.cat-dot {
+width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.cat-label { font-size: 12px; flex: 1; }
+.cat-count {
+font-size: 10px; font-family: ‘JetBrains Mono’, monospace;
+color: var(–muted); background: #21262d;
+padding: 1px 6px; border-radius: 10px;
+}
+
+.cat-vis-toggle {
+width: 16px; height: 16px; border-radius: 3px;
+border: 1.5px solid currentColor; cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+font-size: 10px; flex-shrink: 0;
+transition: all 0.15s;
+}
+.cat-vis-toggle.hidden { opacity: 0.3; }
+
+/* ── COVERAGE PANEL ── */
+.coverage-section { margin-bottom: 16px; }
+.coverage-title {
+font-size: 11px; font-weight: 700; color: var(–text);
+margin-bottom: 8px;
+}
+.coverage-stat {
+display: flex; justify-content: space-between; align-items: center;
+padding: 8px 10px; background: #1c2128; border-radius: 6px; margin-bottom: 4px;
+}
+.coverage-stat-label { font-size: 11px; color: var(–muted); }
+.coverage-stat-val {
+font-size: 13px; font-weight: 700; font-family: ‘JetBrains Mono’, monospace;
+color: var(–accent);
+}
+
+.coverage-bar-wrap { margin: 12px 0; }
+.coverage-bar-label { font-size: 11px; color: var(–muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+.coverage-bar { height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; }
+.coverage-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+
+.gap-item {
+display: flex; align-items: flex-start; gap: 8px;
+padding: 8px 10px; background: #1c1a10; border: 1px solid #443a00;
+border-radius: 6px; margin-bottom: 6px;
+}
+.gap-icon { font-size: 16px; flex-shrink: 0; }
+.gap-text { font-size: 11px; color: var(–warn); line-height: 1.4; }
+
+/* ── POINT LIST ── */
+.point-item {
+display: flex; align-items: center; gap: 8px;
+padding: 7px 8px; border-radius: 6px; cursor: pointer;
+transition: background 0.12s; margin-bottom: 2px;
+border: 1px solid transparent;
+}
+.point-item:hover { background: #1c2128; border-color: var(–border); }
+.point-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.point-name { font-size: 12px; flex: 1; }
+.point-cat { font-size: 10px; color: var(–muted); }
+.point-del { background: none; border: none; color: var(–muted); cursor: pointer; font-size: 14px; padding: 0 2px; transition: color 0.15s; }
+.point-del:hover { color: var(–danger); }
+
+.search-box {
+width: 100%; padding: 7px 10px; border-radius: 6px;
+background: #21262d; border: 1px solid var(–border);
+color: var(–text); font-family: ‘Sora’, sans-serif; font-size: 12px;
+margin-bottom: 10px;
+}
+.search-box::placeholder { color: var(–muted); }
+.search-box:focus { outline: none; border-color: var(–accent); }
+
+/* ── MAP ── */
+#map {
+flex: 1;
+z-index: 1;
+cursor: crosshair;
+}
+#map.normal-cursor { cursor: default; }
+
+/* ── MODAL ── */
+.modal-overlay {
+display: none; position: fixed; inset: 0;
+background: rgba(0,0,0,0.7); z-index: 9000;
+align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+background: var(–panel); border: 1px solid var(–border);
+border-radius: 12px; padding: 24px; width: 380px; max-width: 95vw;
+box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+}
+.modal h2 { font-size: 16px; margin-bottom: 16px; color: var(–text); }
+.form-group { margin-bottom: 14px; }
+.form-group label { font-size: 11px; color: var(–muted); font-weight: 600; display: block; margin-bottom: 5px; }
+.form-group input, .form-group select, .form-group textarea {
+width: 100%; padding: 8px 10px; border-radius: 6px;
+background: #21262d; border: 1px solid var(–border);
+color: var(–text); font-family: ‘Sora’, sans-serif; font-size: 13px;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+outline: none; border-color: var(–accent);
+}
+.form-group textarea { resize: vertical; min-height: 70px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+
+/* ── POPUP ── */
+.leaflet-popup-content-wrapper {
+background: var(–panel) !important;
+border: 1px solid var(–border) !important;
+border-radius: 10px !important;
+box-shadow: 0 8px 30px rgba(0,0,0,0.5) !important;
+color: var(–text) !important;
+font-family: ‘Sora’, sans-serif !important;
+font-size: 13px !important;
+}
+.leaflet-popup-tip { background: var(–panel) !important; }
+.leaflet-popup-close-button { color: var(–muted) !important; }
+
+.popup-content h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.popup-content .popup-cat {
+font-size: 10px; font-weight: 600; text-transform: uppercase;
+letter-spacing: 0.07em; color: var(–muted); margin-bottom: 8px;
+}
+.popup-content .popup-desc { font-size: 12px; color: var(–muted); line-height: 1.5; margin-bottom: 8px; }
+.popup-content .popup-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.popup-tag {
+font-size: 10px; padding: 2px 7px; border-radius: 10px;
+background: #21262d; border: 1px solid var(–border); color: var(–muted);
+}
+
+/* ── OFFLINE NOTICE ── */
+#offlineNotice {
+display: none;
+position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+z-index: 2000; background: #1a1200; border: 1px solid var(–warn);
+border-radius: 8px; padding: 10px 18px; gap: 10px; align-items: center;
+font-size: 12px; color: var(–warn); max-width: 420px; text-align: center;
+box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.leaflet-container { background: #1a2030 !important; }
+
+/* ── LEAFLET OVERRIDES ── */
+.leaflet-control-zoom { border: 1px solid var(–border) !important; border-radius: 8px !important; overflow: hidden; }
+.leaflet-control-zoom a { background: var(–panel) !important; color: var(–text) !important; border: none !important; border-bottom: 1px solid var(–border) !important; }
+.leaflet-control-zoom a:hover { background: var(–border) !important; }
+.leaflet-control-attribution { background: rgba(13,17,23,0.8) !important; color: var(–muted) !important; font-size: 10px !important; }
+
+/* ── TOGGLE SIDEBAR BTN ── */
+.sidebar-toggle {
+position: absolute; left: 280px; top: 50%;
+transform: translateY(-50%);
+z-index: 500; background: var(–panel);
+border: 1px solid var(–border); border-left: none;
+border-radius: 0 6px 6px 0;
+padding: 8px 4px; cursor: pointer; color: var(–muted);
+transition: all 0.3s; font-size: 12px;
+}
+.sidebar-toggle.collapsed { left: 0; }
+
+/* ── STATS BAR ── */
+.stats-bar {
+position: absolute; bottom: 0; left: 280px; right: 0;
+background: rgba(13,17,23,0.9); border-top: 1px solid var(–border);
+display: flex; align-items: center; gap: 20px; padding: 6px 16px;
+z-index: 400; font-size: 11px; font-family: ‘JetBrains Mono’, monospace;
+backdrop-filter: blur(8px);
+}
+.stat-item { color: var(–muted); display: flex; align-items: center; gap: 5px; }
+.stat-item strong { color: var(–accent); }
+
+/* ── COVERAGE CIRCLES ── */
+.coverage-legend {
+background: var(–panel); border: 1px solid var(–border);
+border-radius: 8px; padding: 10px 14px; font-size: 11px;
+}
+.coverage-legend-title { font-weight: 700; margin-bottom: 6px; }
+.cov-item { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.cov-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 30px 10px; color: var(–muted); }
+.empty-state .emoji { font-size: 32px; margin-bottom: 8px; }
+.empty-state p { font-size: 12px; line-height: 1.5; }
+
+/* ── EXPORT SECTION ── */
+.export-section { padding: 12px; border-top: 1px solid var(–border); flex-shrink: 0; }
+
+select option { background: var(–panel); }
+</style>
+
+</head>
+<body>
+
+<!-- HEADER -->
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🗺️</div>
+    <div class="logo-text">
+      <h1>Mapa de Políticas Públicas</h1>
+      <span>General Alvear · Provincia de Buenos Aires</span>
+    </div>
+  </div>
+  <div class="header-actions">
+    <span class="mode-badge normal" id="modeBadge">● VISUALIZACIÓN</span>
+    <button class="btn primary" id="btnAddMode" onclick="toggleAddMode()">＋ Agregar punto</button>
+    <button class="btn" onclick="toggleCoverage()">📡 Cobertura</button>
+    <button class="btn" onclick="exportData()">↓ Exportar</button>
+  </div>
+</header>
+
+<!-- MAIN -->
+
+<div class="main" style="position:relative;">
+
+  <!-- SIDEBAR -->
+
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-tabs">
+      <button class="tab-btn active" onclick="switchTab('capas')">Capas</button>
+      <button class="tab-btn" onclick="switchTab('puntos')">Puntos</button>
+      <button class="tab-btn" onclick="switchTab('cobertura')">Análisis</button>
+    </div>
+
+```
+<!-- TAB CAPAS -->
+<div class="tab-content active" id="tab-capas">
+
+  <div class="cat-group">
+    <div class="cat-group-header">🎓 Educación</div>
+    <div class="cat-item" id="add-edu-urbana" onclick="selectCategory('edu-urbana')">
+      <div class="cat-dot" style="background:var(--edu-urbana)"></div>
+      <span class="cat-label">Escuela Urbana</span>
+      <span class="cat-count" id="cnt-edu-urbana">0</span>
+      <div class="cat-vis-toggle" id="vis-edu-urbana" onclick="toggleVisibility(event,'edu-urbana')">✓</div>
+    </div>
+    <div class="cat-item" id="add-edu-rural" onclick="selectCategory('edu-rural')">
+      <div class="cat-dot" style="background:var(--edu-rural)"></div>
+      <span class="cat-label">Escuela Rural</span>
+      <span class="cat-count" id="cnt-edu-rural">0</span>
+      <div class="cat-vis-toggle" id="vis-edu-rural" onclick="toggleVisibility(event,'edu-rural')">✓</div>
+    </div>
+    <div class="cat-item" id="add-edu-tecnica" onclick="selectCategory('edu-tecnica')">
+      <div class="cat-dot" style="background:var(--edu-tecnica)"></div>
+      <span class="cat-label">Escuela Técnica</span>
+      <span class="cat-count" id="cnt-edu-tecnica">0</span>
+      <div class="cat-vis-toggle" id="vis-edu-tecnica" onclick="toggleVisibility(event,'edu-tecnica')">✓</div>
+    </div>
+    <div class="cat-item" id="add-edu-agraria" onclick="selectCategory('edu-agraria')">
+      <div class="cat-dot" style="background:var(--edu-agraria)"></div>
+      <span class="cat-label">Escuela Agraria</span>
+      <span class="cat-count" id="cnt-edu-agraria">0</span>
+      <div class="cat-vis-toggle" id="vis-edu-agraria" onclick="toggleVisibility(event,'edu-agraria')">✓</div>
+    </div>
+  </div>
+
+  <div class="cat-group">
+    <div class="cat-group-header">🏥 Salud</div>
+    <div class="cat-item" id="add-salud-hosp" onclick="selectCategory('salud-hosp')">
+      <div class="cat-dot" style="background:var(--salud-hosp)"></div>
+      <span class="cat-label">Hospital</span>
+      <span class="cat-count" id="cnt-salud-hosp">0</span>
+      <div class="cat-vis-toggle" id="vis-salud-hosp" onclick="toggleVisibility(event,'salud-hosp')">✓</div>
+    </div>
+    <div class="cat-item" id="add-salud-caps" onclick="selectCategory('salud-caps')">
+      <div class="cat-dot" style="background:var(--salud-caps)"></div>
+      <span class="cat-label">CAPS / Salita</span>
+      <span class="cat-count" id="cnt-salud-caps">0</span>
+      <div class="cat-vis-toggle" id="vis-salud-caps" onclick="toggleVisibility(event,'salud-caps')">✓</div>
+    </div>
+  </div>
+
+  <div class="cat-group">
+    <div class="cat-group-header">🏛️ Instituciones</div>
+    <div class="cat-item" id="add-municipal" onclick="selectCategory('municipal')">
+      <div class="cat-dot" style="background:var(--municipal)"></div>
+      <span class="cat-label">Municipal</span>
+      <span class="cat-count" id="cnt-municipal">0</span>
+      <div class="cat-vis-toggle" id="vis-municipal" onclick="toggleVisibility(event,'municipal')">✓</div>
+    </div>
+    <div class="cat-item" id="add-seguridad" onclick="selectCategory('seguridad')">
+      <div class="cat-dot" style="background:var(--seguridad)"></div>
+      <span class="cat-label">Comisaría</span>
+      <span class="cat-count" id="cnt-seguridad">0</span>
+      <div class="cat-vis-toggle" id="vis-seguridad" onclick="toggleVisibility(event,'seguridad')">✓</div>
+    </div>
+    <div class="cat-item" id="add-bomberos" onclick="selectCategory('bomberos')">
+      <div class="cat-dot" style="background:var(--bomberos)"></div>
+      <span class="cat-label">Bomberos</span>
+      <span class="cat-count" id="cnt-bomberos">0</span>
+      <div class="cat-vis-toggle" id="vis-bomberos" onclick="toggleVisibility(event,'bomberos')">✓</div>
+    </div>
+  </div>
+
+  <div class="cat-group">
+    <div class="cat-group-header">⚽ Social y Deportivo</div>
+    <div class="cat-item" id="add-deporte" onclick="selectCategory('deporte')">
+      <div class="cat-dot" style="background:var(--deporte)"></div>
+      <span class="cat-label">Club / Espacio Deportivo</span>
+      <span class="cat-count" id="cnt-deporte">0</span>
+      <div class="cat-vis-toggle" id="vis-deporte" onclick="toggleVisibility(event,'deporte')">✓</div>
+    </div>
+    <div class="cat-item" id="add-espacio-verde" onclick="selectCategory('espacio-verde')">
+      <div class="cat-dot" style="background:var(--espacio-verde)"></div>
+      <span class="cat-label">Plaza / Espacio Verde</span>
+      <span class="cat-count" id="cnt-espacio-verde">0</span>
+      <div class="cat-vis-toggle" id="vis-espacio-verde" onclick="toggleVisibility(event,'espacio-verde')">✓</div>
+    </div>
+  </div>
+
+  <div class="cat-group">
+    <div class="cat-group-header">🚧 Infraestructura y Movilidad</div>
+    <div class="cat-item" id="add-transporte" onclick="selectCategory('transporte')">
+      <div class="cat-dot" style="background:var(--transporte)"></div>
+      <span class="cat-label">Transporte / Parada</span>
+      <span class="cat-count" id="cnt-transporte">0</span>
+      <div class="cat-vis-toggle" id="vis-transporte" onclick="toggleVisibility(event,'transporte')">✓</div>
+    </div>
+    <div class="cat-item" id="add-infraestructura" onclick="selectCategory('infraestructura')">
+      <div class="cat-dot" style="background:var(--infraestructura)"></div>
+      <span class="cat-label">Infraestructura (agua/gas/luz)</span>
+      <span class="cat-count" id="cnt-infraestructura">0</span>
+      <div class="cat-vis-toggle" id="vis-infraestructura" onclick="toggleVisibility(event,'infraestructura')">✓</div>
+    </div>
+    <div class="cat-item" id="add-obra" onclick="selectCategory('obra')">
+      <div class="cat-dot" style="background:var(--obra)"></div>
+      <span class="cat-label">Obra en ejecución</span>
+      <span class="cat-count" id="cnt-obra">0</span>
+      <div class="cat-vis-toggle" id="vis-obra" onclick="toggleVisibility(event,'obra')">✓</div>
+    </div>
+  </div>
+
+  <div class="cat-group">
+    <div class="cat-group-header">⚠️ Vulnerabilidad</div>
+    <div class="cat-item" id="add-barrio-vuln" onclick="selectCategory('barrio-vuln')">
+      <div class="cat-dot" style="background:var(--barrio-vuln)"></div>
+      <span class="cat-label">Zona Vulnerable / Intervención</span>
+      <span class="cat-count" id="cnt-barrio-vuln">0</span>
+      <div class="cat-vis-toggle" id="vis-barrio-vuln" onclick="toggleVisibility(event,'barrio-vuln')">✓</div>
+    </div>
+    <div class="cat-item" id="add-otro" onclick="selectCategory('otro')">
+      <div class="cat-dot" style="background:var(--otro)"></div>
+      <span class="cat-label">Otro</span>
+      <span class="cat-count" id="cnt-otro">0</span>
+      <div class="cat-vis-toggle" id="vis-otro" onclick="toggleVisibility(event,'otro')">✓</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB PUNTOS -->
+<div class="tab-content" id="tab-puntos">
+  <input type="text" class="search-box" placeholder="🔍 Buscar punto..." oninput="filterPoints(this.value)">
+  <div id="pointsList"></div>
+</div>
+
+<!-- TAB COBERTURA -->
+<div class="tab-content" id="tab-cobertura">
+  <div class="coverage-section">
+    <div class="coverage-title">📊 Resumen General</div>
+    <div class="coverage-stat">
+      <span class="coverage-stat-label">Total de puntos</span>
+      <span class="coverage-stat-val" id="cov-total">0</span>
+    </div>
+    <div class="coverage-stat">
+      <span class="coverage-stat-label">Categorías activas</span>
+      <span class="coverage-stat-val" id="cov-cats">0</span>
+    </div>
+  </div>
+
+  <div class="coverage-section">
+    <div class="coverage-title">📈 Distribución por sector</div>
+    <div id="cov-bars"></div>
+  </div>
+
+  <div class="coverage-section">
+    <div class="coverage-title">⚠️ Posibles brechas detectadas</div>
+    <div id="cov-gaps"></div>
+  </div>
+
+  <div class="coverage-section" style="margin-top:16px;">
+    <div class="coverage-title">🎯 Análisis de radio de cobertura</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:8px;">Activá el modo cobertura para ver el radio de atención estimado de cada servicio.</p>
+    <button class="btn primary" style="width:100%" onclick="toggleCoverage()">📡 Activar / Desactivar cobertura</button>
+  </div>
+</div>
+
+<div class="export-section">
+  <button class="btn" style="width:100%;justify-content:center;" onclick="exportData()">↓ Exportar JSON</button>
+</div>
+```
+
+  </div>
+
+  <!-- MAP -->
+
+  <div id="map"></div>
+  <div id="offlineNotice">
+    ⚠️ El mapa base no carga en este entorno. <strong>Descargá el archivo HTML</strong> y abrilo en tu navegador para ver el mapa completo de OpenStreetMap. Los puntos que agregues se guardan igual.
+  </div>
+
+  <!-- SIDEBAR TOGGLE -->
+
+<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">◀</button>
+
+  <!-- STATS BAR -->
+
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-item">Puntos: <strong id="stat-total">0</strong></div>
+    <div class="stat-item">Educación: <strong id="stat-edu">0</strong></div>
+    <div class="stat-item">Salud: <strong id="stat-salud">0</strong></div>
+    <div class="stat-item">Seguridad: <strong id="stat-seg">0</strong></div>
+    <div class="stat-item" style="margin-left:auto;font-size:10px;color:var(--muted);">
+      General Alvear · -36.0213°, -60.0084°
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2>📍 Nuevo punto</h2>
+    <div class="form-group">
+      <label>NOMBRE</label>
+      <input type="text" id="inputName" placeholder="Ej: Escuela N°12 Manuel Belgrano">
+    </div>
+    <div class="form-group">
+      <label>CATEGORÍA</label>
+      <select id="inputCat">
+        <option value="edu-urbana">🎓 Escuela Urbana</option>
+        <option value="edu-rural">🎓 Escuela Rural</option>
+        <option value="edu-tecnica">🎓 Escuela Técnica</option>
+        <option value="edu-agraria">🎓 Escuela Agraria</option>
+        <option value="salud-hosp">🏥 Hospital</option>
+        <option value="salud-caps">🏥 CAPS / Salita</option>
+        <option value="municipal">🏛️ Municipal</option>
+        <option value="seguridad">👮 Comisaría</option>
+        <option value="bomberos">🚒 Bomberos</option>
+        <option value="deporte">⚽ Club / Deportivo</option>
+        <option value="espacio-verde">🌳 Plaza / Espacio Verde</option>
+        <option value="transporte">🚌 Transporte / Parada</option>
+        <option value="infraestructura">🔧 Infraestructura</option>
+        <option value="obra">🏗️ Obra en ejecución</option>
+        <option value="barrio-vuln">⚠️ Zona Vulnerable</option>
+        <option value="otro">📌 Otro</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>DESCRIPCIÓN / NOTAS</label>
+      <textarea id="inputDesc" placeholder="Dirección, horario, observaciones..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>ESTADO</label>
+      <select id="inputStatus">
+        <option value="activo">✅ Activo</option>
+        <option value="en-obra">🏗️ En obra / Reforma</option>
+        <option value="cerrado">❌ Cerrado / Inactivo</option>
+        <option value="proyectado">📋 Proyectado</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="savePoint()">Guardar punto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+let points = [];
+let markers = [];
+let coverageCircles = [];
+let pendingLatLng = null;
+let isAddMode = false;
+let isCoverageMode = false;
+let selectedCat = 'edu-urbana';
+let hiddenCats = new Set();
+let sidebarOpen = true;
+
+const CAT_CONFIG = {
+  'edu-urbana':      { label: 'Escuela Urbana',           color: '#4fc3f7', emoji: '🎓', radius: 800  },
+  'edu-rural':       { label: 'Escuela Rural',             color: '#29b6f6', emoji: '🎓', radius: 3000 },
+  'edu-tecnica':     { label: 'Escuela Técnica',           color: '#0288d1', emoji: '🎓', radius: 1200 },
+  'edu-agraria':     { label: 'Escuela Agraria',           color: '#26c6da', emoji: '🌾', radius: 4000 },
+  'salud-hosp':      { label: 'Hospital',                  color: '#ef5350', emoji: '🏥', radius: 5000 },
+  'salud-caps':      { label: 'CAPS / Salita',             color: '#ff8a65', emoji: '🏥', radius: 1500 },
+  'municipal':       { label: 'Municipal',                 color: '#ab47bc', emoji: '🏛️', radius: 2000 },
+  'seguridad':       { label: 'Comisaría',                 color: '#42a5f5', emoji: '👮', radius: 2000 },
+  'bomberos':        { label: 'Bomberos',                  color: '#ff7043', emoji: '🚒', radius: 5000 },
+  'deporte':         { label: 'Club / Deportivo',          color: '#66bb6a', emoji: '⚽', radius: 600  },
+  'espacio-verde':   { label: 'Plaza / Espacio Verde',     color: '#a5d6a7', emoji: '🌳', radius: 400  },
+  'transporte':      { label: 'Transporte',                color: '#ffca28', emoji: '🚌', radius: 500  },
+  'infraestructura': { label: 'Infraestructura',           color: '#8d6e63', emoji: '🔧', radius: 1000 },
+  'obra':            { label: 'Obra en ejecución',         color: '#ec407a', emoji: '🏗️', radius: 500  },
+  'barrio-vuln':     { label: 'Zona Vulnerable',           color: '#ff8f00', emoji: '⚠️', radius: 800  },
+  'otro':            { label: 'Otro',                      color: '#9e9e9e', emoji: '📌', radius: 500  },
+};
+
+// General Alvear, Buenos Aires coords
+const CENTER = [-36.0213, -60.0084];
+
+// ── MAP INIT ──
+const map = L.map('map', {
+  center: CENTER,
+  zoom: 14,
+  zoomControl: true,
+});
+
+// Intentar OSM estándar primero, con fallback visual
+const tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  maxZoom: 19,
+  crossOrigin: true,
+}).addTo(map);
+
+tileLayer.on('tileerror', function() {
+  document.getElementById('offlineNotice').style.display = 'flex';
+});
+tileLayer.on('tileload', function() {
+  document.getElementById('offlineNotice').style.display = 'none';
+});
+
+// Center marker
+L.circleMarker(CENTER, {
+  radius: 5, color: '#4fc3f7', fillColor: '#4fc3f7',
+  fillOpacity: 0.8, weight: 2
+}).addTo(map).bindPopup('<b>General Alvear</b><br>Centro del municipio');
+
+map.on('click', function(e) {
+  if (!isAddMode) return;
+  pendingLatLng = e.latlng;
+  openModal();
+});
+
+// ── MODE TOGGLE ──
+function toggleAddMode() {
+  isAddMode = !isAddMode;
+  const badge = document.getElementById('modeBadge');
+  const btn = document.getElementById('btnAddMode');
+  const mapEl = document.getElementById('map');
+
+  if (isAddMode) {
+    badge.textContent = '● MODO AGREGAR';
+    badge.className = 'mode-badge adding';
+    btn.textContent = '✕ Cancelar';
+    btn.classList.remove('primary');
+    mapEl.classList.remove('normal-cursor');
+  } else {
+    badge.textContent = '● VISUALIZACIÓN';
+    badge.className = 'mode-badge normal';
+    btn.textContent = '＋ Agregar punto';
+    btn.classList.add('primary');
+    mapEl.classList.add('normal-cursor');
+  }
+}
+
+// ── CATEGORY SELECT ──
+function selectCategory(cat) {
+  if (!isAddMode) {
+    toggleAddMode();
+  }
+  selectedCat = cat;
+  document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active-add'));
+  document.getElementById('add-' + cat).classList.add('active-add');
+  document.getElementById('inputCat').value = cat;
+}
+
+// ── MODAL ──
+function openModal() {
+  document.getElementById('inputCat').value = selectedCat;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('inputName').focus();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.getElementById('inputName').value = '';
+  document.getElementById('inputDesc').value = '';
+  pendingLatLng = null;
+}
+
+function savePoint() {
+  const name = document.getElementById('inputName').value.trim();
+  const cat  = document.getElementById('inputCat').value;
+  const desc = document.getElementById('inputDesc').value.trim();
+  const status = document.getElementById('inputStatus').value;
+
+  if (!name) { alert('Por favor ingresá un nombre.'); return; }
+  if (!pendingLatLng) return;
+
+  const point = {
+    id: Date.now(),
+    name, cat, desc, status,
+    lat: pendingLatLng.lat,
+    lng: pendingLatLng.lng,
+  };
+
+  points.push(point);
+  addMarker(point);
+  closeModal();
+  toggleAddMode();
+  updateAll();
+  switchTab('puntos');
+}
+
+// ── MARKERS ──
+function makeIcon(cat) {
+  const cfg = CAT_CONFIG[cat];
+  const color = cfg.color;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="38" viewBox="0 0 30 38">
+    <path d="M15 0C6.7 0 0 6.7 0 15c0 10 15 23 15 23S30 25 30 15C30 6.7 23.3 0 15 0z"
+      fill="${color}" stroke="rgba(0,0,0,0.3)" stroke-width="1"/>
+    <circle cx="15" cy="15" r="7" fill="rgba(0,0,0,0.3)"/>
+    <text x="15" y="20" text-anchor="middle" font-size="11">${cfg.emoji}</text>
+  </svg>`;
+  return L.divIcon({
+    html: svg,
+    className: '',
+    iconSize: [30, 38],
+    iconAnchor: [15, 38],
+    popupAnchor: [0, -38],
+  });
+}
+
+function addMarker(point) {
+  const cfg = CAT_CONFIG[point.cat];
+  const statusIcons = { activo: '✅', 'en-obra': '🏗️', cerrado: '❌', proyectado: '📋' };
+
+  const marker = L.marker([point.lat, point.lng], { icon: makeIcon(point.cat) });
+
+  const popupHtml = `<div class="popup-content">
+    <h3>${point.name}</h3>
+    <div class="popup-cat" style="color:${cfg.color}">${cfg.emoji} ${cfg.label}</div>
+    ${point.desc ? `<div class="popup-desc">${point.desc}</div>` : ''}
+    <div class="popup-tags">
+      <span class="popup-tag">${statusIcons[point.status] || '✅'} ${point.status}</span>
+      <span class="popup-tag">📍 ${point.lat.toFixed(4)}, ${point.lng.toFixed(4)}</span>
+    </div>
+  </div>`;
+
+  marker.bindPopup(popupHtml, { maxWidth: 280 });
+
+  if (!hiddenCats.has(point.cat)) {
+    marker.addTo(map);
+  }
+
+  markers.push({ id: point.id, marker, cat: point.cat });
+}
+
+// ── VISIBILITY ──
+function toggleVisibility(event, cat) {
+  event.stopPropagation();
+  const btn = document.getElementById('vis-' + cat);
+
+  if (hiddenCats.has(cat)) {
+    hiddenCats.delete(cat);
+    btn.textContent = '✓';
+    btn.classList.remove('hidden');
+    markers.filter(m => m.cat === cat).forEach(m => m.marker.addTo(map));
+    if (isCoverageMode) {
+      coverageCircles.filter(c => c.cat === cat).forEach(c => c.circle.addTo(map));
+    }
+  } else {
+    hiddenCats.add(cat);
+    btn.textContent = '';
+    btn.classList.add('hidden');
+    markers.filter(m => m.cat === cat).forEach(m => m.marker.remove());
+    coverageCircles.filter(c => c.cat === cat).forEach(c => c.circle.remove());
+  }
+}
+
+// ── COVERAGE ──
+function toggleCoverage() {
+  isCoverageMode = !isCoverageMode;
+  const badge = document.getElementById('modeBadge');
+
+  if (isCoverageMode) {
+    badge.textContent = '● MODO COBERTURA';
+    badge.className = 'mode-badge coverage';
+    drawCoverageCircles();
+  } else {
+    badge.textContent = '● VISUALIZACIÓN';
+    badge.className = 'mode-badge normal';
+    coverageCircles.forEach(c => c.circle.remove());
+    coverageCircles = [];
+  }
+}
+
+function drawCoverageCircles() {
+  coverageCircles.forEach(c => c.circle.remove());
+  coverageCircles = [];
+
+  points.forEach(p => {
+    if (hiddenCats.has(p.cat)) return;
+    const cfg = CAT_CONFIG[p.cat];
+    const circle = L.circle([p.lat, p.lng], {
+      radius: cfg.radius,
+      color: cfg.color,
+      fillColor: cfg.color,
+      fillOpacity: 0.08,
+      weight: 1.5,
+      dashArray: '5,5',
+    }).addTo(map);
+    coverageCircles.push({ id: p.id, cat: p.cat, circle });
+  });
+}
+
+// ── POINT LIST ──
+function renderPointsList(filter = '') {
+  const el = document.getElementById('pointsList');
+  const filtered = points.filter(p =>
+    p.name.toLowerCase().includes(filter.toLowerCase()) ||
+    CAT_CONFIG[p.cat].label.toLowerCase().includes(filter.toLowerCase())
+  );
+
+  if (filtered.length === 0) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="emoji">📍</div>
+      <p>${points.length === 0 ? 'Aún no hay puntos.<br>Activá "Agregar punto" y hacé clic en el mapa.' : 'Sin resultados para "' + filter + '"'}</p>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = filtered.map(p => {
+    const cfg = CAT_CONFIG[p.cat];
+    return `<div class="point-item" onclick="flyToPoint(${p.id})">
+      <div class="point-dot" style="background:${cfg.color}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="point-name">${p.name}</div>
+        <div class="point-cat">${cfg.emoji} ${cfg.label}</div>
+      </div>
+      <button class="point-del" onclick="deletePoint(event,${p.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function filterPoints(val) { renderPointsList(val); }
+
+function flyToPoint(id) {
+  const p = points.find(x => x.id === id);
+  const m = markers.find(x => x.id === id);
+  if (!p || !m) return;
+  map.flyTo([p.lat, p.lng], 16, { duration: 0.8 });
+  setTimeout(() => m.marker.openPopup(), 900);
+}
+
+function deletePoint(event, id) {
+  event.stopPropagation();
+  if (!confirm('¿Eliminar este punto?')) return;
+  const idx = points.findIndex(x => x.id === id);
+  if (idx !== -1) points.splice(idx, 1);
+  const midx = markers.findIndex(x => x.id === id);
+  if (midx !== -1) {
+    markers[midx].marker.remove();
+    markers.splice(midx, 1);
+  }
+  const cidx = coverageCircles.findIndex(x => x.id === id);
+  if (cidx !== -1) {
+    coverageCircles[cidx].circle.remove();
+    coverageCircles.splice(cidx, 1);
+  }
+  updateAll();
+}
+
+// ── COUNTS ──
+function updateCounts() {
+  const counts = {};
+  Object.keys(CAT_CONFIG).forEach(k => counts[k] = 0);
+  points.forEach(p => counts[p.cat] = (counts[p.cat] || 0) + 1);
+  Object.keys(CAT_CONFIG).forEach(k => {
+    const el = document.getElementById('cnt-' + k);
+    if (el) el.textContent = counts[k];
+  });
+
+  // stats bar
+  document.getElementById('stat-total').textContent = points.length;
+  const edu = ['edu-urbana','edu-rural','edu-tecnica','edu-agraria'].reduce((a,k)=>a+counts[k],0);
+  const salud = ['salud-hosp','salud-caps'].reduce((a,k)=>a+counts[k],0);
+  const seg = ['seguridad','bomberos'].reduce((a,k)=>a+counts[k],0);
+  document.getElementById('stat-edu').textContent = edu;
+  document.getElementById('stat-salud').textContent = salud;
+  document.getElementById('stat-seg').textContent = seg;
+
+  // cobertura tab
+  document.getElementById('cov-total').textContent = points.length;
+  const activeCats = Object.keys(counts).filter(k => counts[k] > 0).length;
+  document.getElementById('cov-cats').textContent = activeCats;
+
+  // bars
+  const barsEl = document.getElementById('cov-bars');
+  const groups = [
+    { label: 'Educación', cats: ['edu-urbana','edu-rural','edu-tecnica','edu-agraria'], color: '#4fc3f7' },
+    { label: 'Salud', cats: ['salud-hosp','salud-caps'], color: '#ef5350' },
+    { label: 'Instituciones', cats: ['municipal','seguridad','bomberos'], color: '#ab47bc' },
+    { label: 'Social/Deportivo', cats: ['deporte','espacio-verde'], color: '#66bb6a' },
+    { label: 'Infraestructura', cats: ['transporte','infraestructura','obra'], color: '#8d6e63' },
+    { label: 'Otros', cats: ['barrio-vuln','otro'], color: '#ff8f00' },
+  ];
+  const max = Math.max(1, ...groups.map(g => g.cats.reduce((a,k)=>a+counts[k],0)));
+  barsEl.innerHTML = groups.map(g => {
+    const val = g.cats.reduce((a,k) => a + counts[k], 0);
+    const pct = Math.round(val / max * 100);
+    return `<div class="coverage-bar-wrap">
+      <div class="coverage-bar-label">
+        <span>${g.label}</span><span style="color:var(--text);font-weight:600">${val}</span>
+      </div>
+      <div class="coverage-bar">
+        <div class="coverage-bar-fill" style="width:${pct}%;background:${g.color}"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // gaps
+  const gapsEl = document.getElementById('cov-gaps');
+  const gaps = [];
+  if (counts['salud-hosp'] === 0) gaps.push({ icon: '🏥', text: 'No hay hospital registrado. Zona sin atención hospitalaria identificada.' });
+  if (counts['salud-caps'] < 2) gaps.push({ icon: '💉', text: `Solo ${counts['salud-caps']} CAPS registrado/s. Considerar ampliar cobertura de atención primaria.` });
+  if (counts['edu-rural'] === 0) gaps.push({ icon: '🌾', text: 'Sin escuelas rurales registradas. Revisar cobertura educativa en zonas periurbanas.' });
+  if (counts['transporte'] === 0) gaps.push({ icon: '🚌', text: 'Sin paradas de transporte. Mapear accesibilidad vial y recorridos.' });
+  if (counts['espacio-verde'] < 3) gaps.push({ icon: '🌳', text: 'Pocos espacios verdes. Analizar distribución en barrios.' });
+  if (counts['bomberos'] === 0) gaps.push({ icon: '🚒', text: 'Sin cuartel de bomberos registrado. Verificar cobertura de emergencias.' });
+
+  if (gaps.length === 0) {
+    gapsEl.innerHTML = `<div style="font-size:12px;color:var(--accent2);padding:10px;background:#0d1f18;border:1px solid #1a3a28;border-radius:6px">✅ Buena cobertura en las categorías principales.</div>`;
+  } else {
+    gapsEl.innerHTML = gaps.map(g => `<div class="gap-item">
+      <span class="gap-icon">${g.icon}</span>
+      <span class="gap-text">${g.text}</span>
+    </div>`).join('');
+  }
+}
+
+function updateAll() {
+  updateCounts();
+  renderPointsList();
+  if (isCoverageMode) drawCoverageCircles();
+}
+
+// ── TABS ──
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const names = ['capas','puntos','cobertura'];
+    b.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'puntos') renderPointsList();
+  if (name === 'cobertura') updateCounts();
+}
+
+// ── SIDEBAR TOGGLE ──
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('sidebarToggle');
+  const statsBar = document.getElementById('statsBar');
+  if (sidebarOpen) {
+    sidebar.classList.remove('collapsed');
+    toggle.textContent = '◀';
+    toggle.style.left = '280px';
+    statsBar.style.left = '280px';
+    toggle.classList.remove('collapsed');
+  } else {
+    sidebar.classList.add('collapsed');
+    toggle.textContent = '▶';
+    toggle.style.left = '0';
+    statsBar.style.left = '0';
+    toggle.classList.add('collapsed');
+  }
+  setTimeout(() => map.invalidateSize(), 350);
+}
+
+// ── EXPORT ──
+function exportData() {
+  const data = {
+    municipio: 'General Alvear',
+    provincia: 'Buenos Aires',
+    fecha: new Date().toLocaleDateString('es-AR'),
+    total: points.length,
+    puntos: points,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mapa-alvear-${Date.now()}.json`;
+  a.click();
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('modalOverlay').classList.contains('open')) closeModal();
+    else if (isAddMode) toggleAddMode();
+  }
+});
+
+// Init
+updateAll();
+</script>
+
+</body>
+</html>
